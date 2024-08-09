@@ -4,7 +4,7 @@ type AddAdminUserRequest struct {
 	Username string   `json:"username" binding:"required" example:"admin"`
 	Email    string   `json:"email" binding:"required,email" example:"1234@gmail.com"`
 	Password string   `json:"password" binding:"required" example:"123456"`
-	RoleIds  []string `json:"role_ids"`
+	RoleTags []string `json:"roleTags"`
 }
 
 type LoginRequest struct {
@@ -24,9 +24,9 @@ type UpdateProfileRequest struct {
 	Email string `json:"email" binding:"required,email" example:"1234@gmail.com"`
 }
 type GetProfileResponseData struct {
-	UserId   string `json:"userId"`
-	Username string `json:"username" example:"alan"`
-	//Roles    []string `json:"roles"`
+	UserId   string   `json:"userId"`
+	Username string   `json:"username" example:"alan"`
+	Roles    []string `json:"roles"`
 }
 type GetProfileResponse struct {
 	Response
@@ -34,6 +34,6 @@ type GetProfileResponse struct {
 }
 
 type SetUserRoleRequest struct {
-	RoleIds []string `json:"role_ids"`
-	UserId  string   `json:"user_id"`
+	RoleTags []string `json:"roleTags"`
+	UserId   string   `json:"userId"`
 }
