@@ -72,7 +72,8 @@ func (h *AdminUserHandler) Login(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, v1.LoginResponseData{
-		AccessToken: token,
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
 	})
 }
 

@@ -27,6 +27,7 @@ var repositorySet = wire.NewSet(
 	repository.NewPermissionsRepository,
 	repository.NewRoleRepository,
 	repository.NewCaptchaRepository,
+	repository.NewTokenRepository,
 )
 
 var serviceSet = wire.NewSet(

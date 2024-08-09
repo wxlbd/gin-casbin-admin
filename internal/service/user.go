@@ -7,13 +7,19 @@ import (
 	"gin-casbin-admin/internal/repository"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
+type Token struct {
+	AccessToken  string
+	RefreshToken string
+}
+
 type UserService interface {
 	Add(ctx context.Context, req *v1.AddAdminUserRequest) error
-	Login(ctx context.Context, req *v1.LoginRequest) (string, error)
+	Login(ctx context.Context, req *v1.LoginRequest) (*Token, error)
 	GetProfile(ctx context.Context, userId string) (*v1.GetProfileResponseData, error)
 	UpdateProfile(ctx context.Context, userId string, req *v1.UpdateProfileRequest) error
 	SetUserRoles(ctx *gin.Context, v *v1.SetUserRoleRequest) error
@@ -22,18 +28,24 @@ type UserService interface {
 func NewUserService(
 	service *Service,
 	userRepo repository.UserRepository,
+	tokenRepo repository.TokenRepository,
 	enforcer *casbin.Enforcer,
+	conf *viper.Viper,
 ) UserService {
 	return &userService{
-		userRepo: userRepo,
-		Service:  service,
-		enforcer: enforcer,
+		userRepo:  userRepo,
+		Service:   service,
+		enforcer:  enforcer,
+		tokenRepo: tokenRepo,
+		conf:      conf,
 	}
 }
 
 type userService struct {
-	userRepo repository.UserRepository
-	enforcer *casbin.Enforcer
+	conf      *viper.Viper
+	userRepo  repository.UserRepository
+	tokenRepo repository.TokenRepository
+	enforcer  *casbin.Enforcer
 	*Service
 }
 
@@ -89,22 +101,31 @@ func (s *userService) Add(ctx context.Context, req *v1.AddAdminUserRequest) erro
 	return err
 }
 
-func (s *userService) Login(ctx context.Context, req *v1.LoginRequest) (string, error) {
+func (s *userService) Login(ctx context.Context, req *v1.LoginRequest) (*Token, error) {
 	user, err := s.userRepo.GetByUsername(ctx, req.Username)
 	if err != nil || user == nil {
-		return "", v1.ErrUnauthorized
+		return nil, v1.ErrUnauthorized
 	}
-
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	token, err := s.jwt.GenToken(user.UserId, user.Username, time.Now().Add(time.Hour*24*90))
+	token, err := s.jwt.GenToken(user.UserId, user.Username, time.Now().Add(s.conf.GetDuration("security.jwt.access_token_expire")))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
-	return token, nil
+	refreshExpire := s.conf.GetDuration("security.jwt.refresh_token_expire")
+	refreshToken, err := s.jwt.GenToken(user.UserId, user.Username, time.Now().Add(refreshExpire))
+	if err != nil {
+		return nil, err
+	}
+	if err := s.tokenRepo.StoreRefreshToken(ctx, user.UserId, refreshToken, refreshExpire); err != nil {
+		return nil, err
+	}
+	return &Token{
+		AccessToken:  token,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s *userService) GetProfile(ctx context.Context, userId string) (*v1.GetProfileResponseData, error) {
@@ -131,4 +152,12 @@ func (s *userService) UpdateProfile(ctx context.Context, userId string, req *v1.
 	}
 
 	return nil
+}
+
+func (s *userService) GetByEmail(ctx context.Context, email string) (*model.User, error) {
+	return s.userRepo.GetByEmail(ctx, email)
+}
+
+func (s *userService) GetByUsername(ctx context.Context, username string) (*model.User, error) {
+	return s.userRepo.GetByUsername(ctx, username)
 }

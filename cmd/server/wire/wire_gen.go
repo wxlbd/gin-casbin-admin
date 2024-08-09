@@ -37,7 +37,8 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	sidSid := sid.NewSid()
 	serviceService := service.NewService(transaction, logger, sidSid, jwtJWT)
 	userRepository := repository.NewUserRepository(repositoryRepository)
-	userService := service.NewUserService(serviceService, userRepository, enforcer)
+	tokenRepository := repository.NewTokenRepository(repositoryRepository)
+	userService := service.NewUserService(serviceService, userRepository, tokenRepository, enforcer, viperViper)
 	adminUserHandler := handler.NewUserHandler(handlerHandler, userService, enforcer)
 	permissionsRepository := repository.NewPermissionsRepository(repositoryRepository)
 	permissionsService := service.NewPermissionsService(serviceService, permissionsRepository)
@@ -57,7 +58,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 // wire.go:
 
-var repositorySet = wire.NewSet(repository.NewDB, repository.NewRedis, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewPermissionsRepository, repository.NewRoleRepository, repository.NewCaptchaRepository)
+var repositorySet = wire.NewSet(repository.NewDB, repository.NewRedis, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewPermissionsRepository, repository.NewRoleRepository, repository.NewCaptchaRepository, repository.NewTokenRepository)
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewPermissionsService, service.NewRoleService, service.NewCaptchaService)
 
