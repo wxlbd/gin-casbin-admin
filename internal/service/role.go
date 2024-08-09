@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	v1 "gin-casbin-admin/api/v1"
 	"gin-casbin-admin/internal/model"
 	"gin-casbin-admin/internal/repository"
 	"github.com/casbin/casbin/v2"
+	"slices"
 	"strconv"
 )
 
@@ -51,19 +53,25 @@ func (r *roleService) Add(ctx context.Context, req *v1.RoleAddRequest) error {
 		)
 		if id, err = r.roleRepo.Create(ctx, &model.AdminRole{
 			Name:        req.RoleName,
+			Tag:         req.RoleTag,
 			Status:      req.Status,
 			Description: req.Description,
 		}); err != nil {
 			return err
 		}
-		permissions, err := r.permissionRepo.GetByIds(ctx, req.PermissionIds)
-		if err != nil {
-			return err
+		var policies [][]string
+		if slices.Contains(req.PermissionIds, "*") {
+			policies = append(policies, []string{strconv.Itoa(id), "*", "*", "*"})
+		} else {
+			permissions, err := r.permissionRepo.GetByIds(ctx, req.PermissionIds)
+			if err != nil {
+				return err
+			}
+			for _, permission := range permissions {
+				policies = append(policies, []string{strconv.Itoa(id), permission.Path, permission.Method, strconv.FormatUint(permission.Id, 10)})
+			}
 		}
-		policies := make([][]string, 0, len(permissions))
-		for _, permission := range permissions {
-			policies = append(policies, []string{strconv.Itoa(id), permission.Path, permission.Method, strconv.FormatUint(permission.Id, 10)})
-		}
+		fmt.Println(policies)
 		if _, err := r.enforcer.AddPoliciesEx(policies); err != nil {
 			return err
 		}
@@ -132,13 +140,9 @@ func (r *roleService) Get(ctx context.Context, req *v1.RoleGetRequest) (*v1.Role
 	if err != nil {
 		return nil, err
 	}
-	ids := make([]int, 0, len(policies))
+	ids := make([]string, 0, len(policies))
 	for _, p := range policies {
-		id, err := strconv.Atoi(p[3])
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
+		ids = append(ids, p[3])
 	}
 	permissions, err := r.permissionRepo.GetByIds(ctx, ids)
 	if err != nil {
