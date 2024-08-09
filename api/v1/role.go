@@ -3,18 +3,20 @@ package v1
 import "time"
 
 type RoleAddRequest struct {
-	RoleName      string `json:"role_name"`
-	Status        int    `json:"status"`
-	Description   string `json:"description"`
-	PermissionIds []int  `json:"permission_ids"`
+	RoleName      string   `json:"roleName"`
+	RoleTag       string   `json:"roleTag"`
+	Status        int      `json:"status"`
+	Description   string   `json:"description"`
+	PermissionIds []string `json:"permissionIds"`
 }
 
 type RoleUpdateRequest struct {
-	Id            int    `json:"id"`
-	RoleName      string `json:"role_name"`
-	Status        int    `json:"status"`
-	Description   string `json:"description"`
-	PermissionIds []int  `json:"permission_ids"`
+	Id            int      `json:"id"`
+	RoleName      string   `json:"roleName"`
+	RoleTag       string   `json:"roleTag"`
+	Status        int      `json:"status"`
+	Description   string   `json:"description"`
+	PermissionIds []string `json:"permissionIds"`
 }
 
 type RoleDeleteRequest struct {
