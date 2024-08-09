@@ -55,25 +55,19 @@ func NewHTTPServer(
 		})
 	})
 
-	v1 := s.Group("/v1")
+	v1 := s.Group("/api/v1")
 	{
+		v1.GET("/captcha", captchaHandler.GetCaptcha)
 		// No route group has permission
-		noAuthRouter := v1.Group("/")
+		noAuthRouter := v1.Group("/user")
 		{
 			noAuthRouter.POST("/register", userHandler.AddAdminUser)
 			noAuthRouter.POST("/login", userHandler.Login)
 
-			noAuthRouter.GET("/captcha", captchaHandler.GetCaptcha)
 		}
-		// Non-strict permission routing group
-		noStrictAuthRouter := v1.Group("/").Use(middleware.NoStrictAuth(jwt, logger))
-		{
-			noStrictAuthRouter.GET("/user", userHandler.GetProfile)
-		}
-
-		// Strict permission routing group
 		strictAuthRouter := v1.Group("/").Use(middleware.StrictAuth(jwt, logger))
 		{
+			strictAuthRouter.GET("/user", userHandler.GetProfile)
 			strictAuthRouter.PUT("/user", userHandler.UpdateProfile)
 			strictAuthRouter.POST("/user/role", userHandler.SetUserRoles)
 		}
