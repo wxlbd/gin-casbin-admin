@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
 	"time"
 )
 
@@ -53,7 +54,7 @@ func (s *userService) SetUserRoles(ctx *gin.Context, v *v1.SetUserRoleRequest) e
 	if _, err2 := s.enforcer.DeleteRolesForUser(v.UserId); err2 != nil {
 		return err2
 	}
-	_, err := s.enforcer.AddRolesForUser(v.UserId, v.RoleIds)
+	_, err := s.enforcer.AddRolesForUser(v.UserId, v.RoleTags)
 	if err != nil {
 		return err
 	}
@@ -91,8 +92,8 @@ func (s *userService) Add(ctx context.Context, req *v1.AddAdminUserRequest) erro
 		if err = s.userRepo.Create(ctx, user); err != nil {
 			return err
 		}
-		if len(req.RoleIds) != 0 {
-			if _, err = s.enforcer.AddRolesForUser(user.UserId, req.RoleIds); err != nil {
+		if len(req.RoleTags) != 0 {
+			if _, err = s.enforcer.AddRolesForUser(user.UserId, req.RoleTags); err != nil {
 				return err
 			}
 		}
@@ -133,10 +134,14 @@ func (s *userService) GetProfile(ctx context.Context, userId string) (*v1.GetPro
 	if err != nil {
 		return nil, err
 	}
-
+	roles, err := s.enforcer.GetRolesForUser(strconv.Itoa(int(user.Id)))
+	if err != nil {
+		return nil, err
+	}
 	return &v1.GetProfileResponseData{
 		UserId:   user.UserId,
 		Username: user.Username,
+		Roles:    roles,
 	}, nil
 }
 
