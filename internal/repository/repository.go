@@ -104,8 +104,10 @@ func NewDB(conf *viper.Viper, l *log.Logger) *gorm.DB {
 }
 func NewRedis(conf *viper.Viper) redis.UniversalClient {
 	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
-		Addrs:    conf.GetStringSlice("data.redis.addrs"),
-		Password: conf.GetString("data.redis.password"),
+		Addrs:        conf.GetStringSlice("data.redis.addrs"),
+		Password:     conf.GetString("data.redis.password"),
+		ReadTimeout:  conf.GetDuration("data.redis.read_timeout"),
+		WriteTimeout: conf.GetDuration("data.redis.write_timeout"),
 	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
