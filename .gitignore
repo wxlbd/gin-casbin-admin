@@ -4,3 +4,4 @@ storage/logs
 deploy/docker-compose/conf
 deploy/docker-compose/data
 !/go_build_gin_casbin_admin_cmd_server
+*_gen.go
