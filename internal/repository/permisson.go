@@ -12,7 +12,7 @@ type PermissionsRepository interface {
 	GetByID(ctx context.Context, id int) (*model.AdminPermissions, error)
 	FindAll(ctx context.Context, filters map[string]any) ([]*model.AdminPermissions, error)
 	Delete(ctx context.Context, id int) error
-	GetByIds(ctx context.Context, ids []int) ([]*model.AdminPermissions, error)
+	GetByIds(ctx context.Context, ids []string) ([]*model.AdminPermissions, error)
 }
 
 func NewPermissionsRepository(
@@ -27,7 +27,7 @@ type permissionsRepository struct {
 	*Repository
 }
 
-func (p *permissionsRepository) GetByIds(ctx context.Context, ids []int) ([]*model.AdminPermissions, error) {
+func (p *permissionsRepository) GetByIds(ctx context.Context, ids []string) ([]*model.AdminPermissions, error) {
 	var list []*model.AdminPermissions
 	err := p.DB(ctx).Where("id in ?", ids).Find(&list).Error
 	return list, err
