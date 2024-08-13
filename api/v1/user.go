@@ -37,3 +37,11 @@ type SetUserRoleRequest struct {
 	RoleTags []string `json:"roleTags"`
 	UserId   string   `json:"userId"`
 }
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken" binding:"required" example:"refreshToken"`
+}
+
+type RefreshTokenResponseData struct {
+	AccessToken string `json:"accessToken"`
+}

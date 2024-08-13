@@ -77,6 +77,20 @@ func (h *AdminUserHandler) Login(ctx *gin.Context) {
 	})
 }
 
+func (h *AdminUserHandler) RefreshToken(ctx *gin.Context) {
+	var req v1.RefreshTokenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, err, nil)
+		return
+	}
+	token, err := h.userService.RefreshToken(ctx, req.RefreshToken)
+	if err != nil {
+		v1.HandleError(ctx, http.StatusOK, err, nil)
+		return
+	}
+	v1.HandleSuccess(ctx, v1.RefreshTokenResponseData{AccessToken: token})
+}
+
 // GetProfile godoc
 // @Summary 获取用户信息
 // @Schemes

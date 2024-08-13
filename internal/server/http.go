@@ -63,7 +63,7 @@ func NewHTTPServer(
 		{
 			noAuthRouter.POST("/register", userHandler.AddAdminUser)
 			noAuthRouter.POST("/login", userHandler.Login)
-
+			noAuthRouter.POST("refreshToken", userHandler.RefreshToken)
 		}
 		strictAuthRouter := v1.Group("/").Use(middleware.StrictAuth(jwt, logger))
 		{

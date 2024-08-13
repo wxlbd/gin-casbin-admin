@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	v1 "gin-casbin-admin/api/v1"
 	"gin-casbin-admin/internal/model"
 	"gin-casbin-admin/internal/repository"
 	"github.com/casbin/casbin/v2"
-	"github.com/gin-gonic/gin"
+	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"strconv"
@@ -23,7 +24,8 @@ type UserService interface {
 	Login(ctx context.Context, req *v1.LoginRequest) (*Token, error)
 	GetProfile(ctx context.Context, userId string) (*v1.GetProfileResponseData, error)
 	UpdateProfile(ctx context.Context, userId string, req *v1.UpdateProfileRequest) error
-	SetUserRoles(ctx *gin.Context, v *v1.SetUserRoleRequest) error
+	SetUserRoles(ctx context.Context, v *v1.SetUserRoleRequest) error
+	RefreshToken(ctx context.Context, refreshToken string) (string, error)
 }
 
 func NewUserService(
@@ -50,7 +52,28 @@ type userService struct {
 	*Service
 }
 
-func (s *userService) SetUserRoles(ctx *gin.Context, v *v1.SetUserRoleRequest) error {
+func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (string, error) {
+	claims, err := s.jwt.ParseToken(refreshToken)
+	if err != nil {
+		if errors.Is(err, jwt2.ErrTokenExpired) {
+			return "", v1.ErrTokenExpired
+		}
+		return "", v1.ErrTokenInvalid
+	}
+	if _, err := s.tokenRepo.GetRefreshToken(ctx, claims.UserId); err != nil {
+		if errors.Is(err, repository.ErrRecordNotFound) {
+			return "", v1.ErrTokenIllegal
+		}
+		return "", v1.ErrInternalServerError
+	}
+	accessToken, err := s.jwt.GenToken(claims.UserId, claims.Subject, time.Now().Add(s.conf.GetDuration("security.jwt.access_token_expire")))
+	if err != nil {
+		return "", v1.ErrInternalServerError
+	}
+	return accessToken, nil
+}
+
+func (s *userService) SetUserRoles(ctx context.Context, v *v1.SetUserRoleRequest) error {
 	if _, err2 := s.enforcer.DeleteRolesForUser(v.UserId); err2 != nil {
 		return err2
 	}
