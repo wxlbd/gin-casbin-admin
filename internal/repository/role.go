@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gin-casbin-admin/internal/model"
+	"gorm.io/gorm"
 )
 
 type RoleRepository interface {
@@ -45,6 +47,9 @@ func (r *roleRepository) Update(ctx context.Context, role *model.AdminRole) erro
 func (r *roleRepository) GetByID(ctx context.Context, id int) (*model.AdminRole, error) {
 	var role model.AdminRole
 	if err := r.DB(ctx).First(&role, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrRecordNotFound
+		}
 		return nil, err
 	}
 	return &role, nil
