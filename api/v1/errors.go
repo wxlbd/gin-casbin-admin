@@ -13,4 +13,7 @@ var (
 	ErrEmailAlreadyUse    = newError(1001, "The email is already in use.")
 	ErrUsernameAlreadyUse = newError(1002, "The username is already in use.")
 	ErrCaptchaInvalid     = newError(1003, "Captcha is invalid.")
+	ErrTokenInvalid       = newError(1004, "Token is invalid.")
+	ErrTokenExpired       = newError(1005, "Token is expired.")
+	ErrTokenIllegal       = newError(1006, "Token is illegal.")
 )
