@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"errors"
 	"gin-casbin-admin/api/v1"
 	"gin-casbin-admin/pkg/jwt"
 	"gin-casbin-admin/pkg/log"
 	"github.com/gin-gonic/gin"
+	jwt2 "github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -28,7 +30,11 @@ func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 				"url":    ctx.Request.URL,
 				"params": ctx.Params,
 			}), zap.Error(err))
-			v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, nil)
+			if errors.Is(err, jwt2.ErrTokenExpired) {
+				v1.HandleError(ctx, http.StatusOK, v1.ErrTokenExpired, nil)
+			} else {
+				v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, nil)
+			}
 			ctx.Abort()
 			return
 		}
