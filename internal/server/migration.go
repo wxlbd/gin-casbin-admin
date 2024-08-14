@@ -21,7 +21,7 @@ func NewMigrate(db *gorm.DB, log *log.Logger) *Migrate {
 	}
 }
 func (m *Migrate) Start(ctx context.Context) error {
-	if err := m.db.AutoMigrate(&model.User{}, &model.AdminPermissions{}, &model.AdminRole{}); err != nil {
+	if err := m.db.AutoMigrate(&model.User{}, &model.AdminPermissions{}, &model.AdminRole{}, &model.Menu{}); err != nil {
 		m.log.Error("user migrate error", zap.Error(err))
 		return err
 	}

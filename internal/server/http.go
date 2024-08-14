@@ -24,6 +24,7 @@ func NewHTTPServer(
 	permissionHandler *handler.PermissionHandler,
 	roleHandler *handler.RoleHandler,
 	captchaHandler *handler.CaptchaHandler,
+	menuHandler *handler.MenuHandler,
 ) *http.Server {
 	gin.SetMode(gin.DebugMode)
 	s := http.NewServer(
@@ -70,6 +71,16 @@ func NewHTTPServer(
 			strictAuthRouter.GET("/user", userHandler.GetProfile)
 			strictAuthRouter.PUT("/user", userHandler.UpdateProfile)
 			strictAuthRouter.POST("/user/role", userHandler.SetUserRoles)
+		}
+
+		menuRouter := v1.Group("/menu")
+		{
+			menuRouter.POST("", menuHandler.AddMenu)
+			menuRouter.GET("", menuHandler.GetMenuList)
+			menuRouter.PUT("/:id", menuHandler.UpdateMenu)
+			menuRouter.DELETE("", menuHandler.DeleteMenu)
+			menuRouter.GET("/tree", menuHandler.GetMenuTree)
+			menuRouter.GET("/:id", menuHandler.GetMenu)
 		}
 
 		permissionRouter := v1.Group("/permission").Use(middleware.StrictAuth(jwt, logger), middleware.CasbinMiddleware(enforcer, logger))

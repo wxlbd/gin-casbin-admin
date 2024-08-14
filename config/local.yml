@@ -9,7 +9,7 @@ security:
     app_security: 123456
   jwt:
     key: QQFeiCheYnRFerJTSEcrfB89fw8prOaObmrch8
-    access_token_expire: 3h
+    access_token_expire: 5s
     refresh_token_expire: 168h
 data:
   db:
