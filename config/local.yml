@@ -9,7 +9,7 @@ security:
     app_security: 123456
   jwt:
     key: QQFeiCheYnRFerJTSEcrfB89fw8prOaObmrch8
-    access_token_expire: 5s
+    access_token_expire: 2h
     refresh_token_expire: 168h
 data:
   db:
@@ -42,10 +42,10 @@ log:
 casbin_config:
   model_text: |
     [request_definition]
-    r = sub, obj, act
+    r = sub, menu_id
     
     [policy_definition]
-    p = sub, obj, act, idx # idx是权限节点的ID
+    p = sub, menu_id, type # type: 1：目录；2：菜单；3：按钮(api)
     
     [role_definition]
     g = _, _
@@ -54,4 +54,4 @@ casbin_config:
     e = some(where (p.eft == allow))
     
     [matchers]
-    m = g(r.sub, p.sub) && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act) || r.sub == "admin"
+    m = g(r.sub, p.sub) && r.menu_id == p.menu_id || r.sub == "admin"

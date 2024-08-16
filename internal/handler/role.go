@@ -77,7 +77,7 @@ func (r *RoleHandler) Get(ctx *gin.Context) {
 func (r *RoleHandler) List(ctx *gin.Context) {
 	req := new(v1.RoleListRequest)
 	req.PageSize, _ = strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
-	req.Page, _ = strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	req.PageNum, _ = strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	list, err := r.roleService.List(ctx, req)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("roleService.List error", zap.Error(err))

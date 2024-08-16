@@ -3,20 +3,20 @@ package v1
 import "time"
 
 type RoleAddRequest struct {
-	RoleName      string   `json:"roleName"`
-	RoleTag       string   `json:"roleTag"`
-	Status        int      `json:"status"`
-	Description   string   `json:"description"`
-	PermissionIds []string `json:"permissionIds"`
+	RoleName    string   `json:"roleName"`
+	RoleTag     string   `json:"roleTag"`
+	Status      int      `json:"status"`
+	Description string   `json:"description"`
+	MenuIds     []string `json:"menuIds"`
 }
 
 type RoleUpdateRequest struct {
-	Id            int      `json:"id"`
-	RoleName      string   `json:"roleName"`
-	RoleTag       string   `json:"roleTag"`
-	Status        int      `json:"status"`
-	Description   string   `json:"description"`
-	PermissionIds []string `json:"permissionIds"`
+	Id          int      `json:"id"`
+	RoleName    string   `json:"roleName"`
+	RoleTag     string   `json:"roleTag"`
+	Status      int      `json:"status"`
+	Description string   `json:"description"`
+	MenuIds     []string `json:"menuIds"`
 }
 
 type RoleDeleteRequest struct {
@@ -28,17 +28,17 @@ type RoleGetRequest struct {
 }
 
 type RoleListRequest struct {
-	Page     int `form:"page"`
-	PageSize int `form:"page_size"`
+	PageNum  int `form:"pageNum"`
+	PageSize int `form:"pageSize"`
 }
 
 type RoleGetResponse struct {
-	Id          int               `json:"id"`
-	RoleName    string            `json:"role_name"`
-	Status      int               `json:"status"`
-	Description string            `json:"description"`
-	CreatedAt   time.Time         `json:"created_at,omitempty"`
-	Permissions []*RolePermission `json:"permissions,omitempty"`
+	Id          int         `json:"id"`
+	RoleName    string      `json:"roleName"`
+	Status      int         `json:"status"`
+	Description string      `json:"description"`
+	CreatedAt   time.Time   `json:"createdAt,omitempty"`
+	Menus       []*RoleMenu `json:"menus,omitempty"`
 }
 
 type RoleListResponse struct {
@@ -46,10 +46,9 @@ type RoleListResponse struct {
 	List  []*RoleGetResponse
 }
 
-type RolePermission struct {
+type RoleMenu struct {
 	Id     int    `json:"id"`
 	Path   string `json:"path"`
 	Method string `json:"method"`
-	Name   string `json:"name"`
 	Title  string `json:"title"`
 }

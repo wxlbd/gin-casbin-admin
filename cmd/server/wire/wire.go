@@ -24,7 +24,6 @@ var repositorySet = wire.NewSet(
 	repository.NewRepository,
 	repository.NewTransaction,
 	repository.NewUserRepository,
-	repository.NewPermissionsRepository,
 	repository.NewRoleRepository,
 	repository.NewCaptchaRepository,
 	repository.NewTokenRepository,
@@ -34,7 +33,6 @@ var repositorySet = wire.NewSet(
 var serviceSet = wire.NewSet(
 	service.NewService,
 	service.NewUserService,
-	service.NewPermissionsService,
 	service.NewRoleService,
 	service.NewCaptchaService,
 	service.NewMenuService,
@@ -43,7 +41,6 @@ var serviceSet = wire.NewSet(
 var handlerSet = wire.NewSet(
 	handler.NewHandler,
 	handler.NewUserHandler,
-	handler.NewPermissionHandler,
 	handler.NewRoleHandler,
 	handler.NewCaptchaHandler,
 	handler.NewMenuHandler,

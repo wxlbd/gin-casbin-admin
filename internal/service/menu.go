@@ -45,7 +45,7 @@ func buildMenuTree(menus []*model.Menu, parentId uint64) []*v1.Menu {
 	for _, v := range menus {
 		if v.ParentId == parentId {
 			node := &v1.Menu{
-				Id:            v.ID,
+				Id:            v.Id,
 				Type:          v.Type,
 				ParentId:      v.ParentId,
 				Icon:          v.Icon,
@@ -60,7 +60,7 @@ func buildMenuTree(menus []*model.Menu, parentId uint64) []*v1.Menu {
 				Sort:          v.Sort,
 				Status:        v.Status,
 			}
-			node.Children = buildMenuTree(menus, v.ID)
+			node.Children = buildMenuTree(menus, v.Id)
 			tree = append(tree, node)
 		}
 	}
@@ -100,7 +100,7 @@ func (m *menuService) Delete(ctx context.Context, ids []uint64) error {
 
 func (m *menuService) Update(ctx context.Context, req *v1.MenuUpdateRequest) error {
 	err := m.menuRepo.Update(ctx, &model.Menu{
-		ID:            req.Id,
+		Id:            req.Id,
 		Title:         req.Title,
 		ParentId:      req.ParentId,
 		Type:          req.Type,
@@ -130,7 +130,7 @@ func (m *menuService) Get(ctx context.Context, req *v1.MenuGetRequest) (*v1.Menu
 
 	return &v1.MenuGetResponse{
 		Menu: &v1.Menu{
-			Id:            menu.ID,
+			Id:            menu.Id,
 			Title:         menu.Title,
 			ParentId:      menu.ParentId,
 			Type:          menu.Type,
@@ -164,7 +164,7 @@ func (m *menuService) List(ctx context.Context, req *v1.MenuListRequest) (*v1.Me
 	l := make([]*v1.Menu, 0, len(list))
 	for _, v := range list {
 		l = append(l, &v1.Menu{
-			Id:            v.ID,
+			Id:            v.Id,
 			Type:          v.Type,
 			ParentId:      v.ParentId,
 			Icon:          v.Icon,

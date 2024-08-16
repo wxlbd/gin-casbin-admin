@@ -10,7 +10,6 @@ import (
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 	"time"
 )
 
@@ -157,7 +156,7 @@ func (s *userService) GetProfile(ctx context.Context, userId string) (*v1.GetPro
 	if err != nil {
 		return nil, err
 	}
-	roles, err := s.enforcer.GetRolesForUser(strconv.Itoa(int(user.Id)))
+	roles, err := s.enforcer.GetRolesForUser(userId)
 	if err != nil {
 		return nil, err
 	}

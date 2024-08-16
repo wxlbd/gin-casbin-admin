@@ -5,7 +5,7 @@ import (
 )
 
 type Menu struct {
-	ID            uint64 `gorm:"column:id;type:BIGINT UNSIGNED;PRIMARY_KEY;AUTO_INCREMENT;"`
+	Id            uint64 `gorm:"column:id;type:BIGINT UNSIGNED;PRIMARY_KEY;AUTO_INCREMENT;"`
 	Title         string `gorm:"column:title;type:VARCHAR(255);not null;default:''"`
 	ParentId      uint64 `gorm:"column:parent_id;type:BIGINT UNSIGNED;NOT NULL;DEFAULT:0;comment:父级ID"`
 	Type          int8   `gorm:"column:type;type:TINYINT;NOT NULL;DEFAULT:1;comment:类型（1：目录；2：菜单；3：按钮(api)）"`

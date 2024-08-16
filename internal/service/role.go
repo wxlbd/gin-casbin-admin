@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	v1 "gin-casbin-admin/api/v1"
 	"gin-casbin-admin/internal/model"
 	"gin-casbin-admin/internal/repository"
@@ -27,22 +26,22 @@ type RoleService interface {
 func NewRoleService(
 	service *Service,
 	roleRepo repository.RoleRepository,
-	permissionsRepository repository.PermissionsRepository,
+	menuRepo repository.MenuRepository,
 	enforcer *casbin.Enforcer,
 ) RoleService {
 	return &roleService{
-		Service:        service,
-		roleRepo:       roleRepo,
-		permissionRepo: permissionsRepository,
-		enforcer:       enforcer,
+		Service:  service,
+		roleRepo: roleRepo,
+		enforcer: enforcer,
+		menuRepo: menuRepo,
 	}
 }
 
 type roleService struct {
 	*Service
-	roleRepo       repository.RoleRepository
-	permissionRepo repository.PermissionsRepository
-	enforcer       *casbin.Enforcer
+	roleRepo repository.RoleRepository
+	menuRepo repository.MenuRepository
+	enforcer *casbin.Enforcer
 }
 
 func (r *roleService) Add(ctx context.Context, req *v1.RoleAddRequest) error {
@@ -60,18 +59,17 @@ func (r *roleService) Add(ctx context.Context, req *v1.RoleAddRequest) error {
 			return err
 		}
 		var policies [][]string
-		if slices.Contains(req.PermissionIds, "*") {
+		if slices.Contains(req.MenuIds, "*") {
 			policies = append(policies, []string{strconv.Itoa(id), "*", "*", "*"})
 		} else {
-			permissions, err := r.permissionRepo.GetByIds(ctx, req.PermissionIds)
+			menus, err := r.menuRepo.GetByIds(ctx, req.MenuIds)
 			if err != nil {
 				return err
 			}
-			for _, permission := range permissions {
-				policies = append(policies, []string{strconv.Itoa(id), permission.Path, permission.Method, strconv.FormatUint(permission.Id, 10)})
+			for _, menu := range menus {
+				policies = append(policies, []string{strconv.Itoa(id), strconv.Itoa(int(menu.Id)), strconv.Itoa(int(menu.Type))})
 			}
 		}
-		fmt.Println(policies)
 		if _, err := r.enforcer.AddPoliciesEx(policies); err != nil {
 			return err
 		}
@@ -112,13 +110,13 @@ func (r *roleService) Update(ctx context.Context, req *v1.RoleUpdateRequest) err
 		if _, err := r.enforcer.RemoveFilteredPolicy(0, strconv.Itoa(req.Id)); err != nil {
 			return err
 		}
-		permissions, err := r.permissionRepo.GetByIds(ctx, req.PermissionIds)
+		menus, err := r.menuRepo.GetByIds(ctx, req.MenuIds)
 		if err != nil {
 			return err
 		}
-		policies := make([][]string, 0, len(permissions))
-		for _, permission := range permissions {
-			policies = append(policies, []string{strconv.Itoa(req.Id), permission.Path, permission.Method, strconv.FormatUint(permission.Id, 10)})
+		policies := make([][]string, 0, len(menus))
+		for _, menu := range menus {
+			policies = append(policies, []string{strconv.Itoa(req.Id), strconv.Itoa(int(menu.Id)), strconv.Itoa(int(menu.Type))})
 		}
 		if _, err := r.enforcer.AddPoliciesEx(policies); err != nil {
 			return err
@@ -144,18 +142,17 @@ func (r *roleService) Get(ctx context.Context, req *v1.RoleGetRequest) (*v1.Role
 	for _, p := range policies {
 		ids = append(ids, p[3])
 	}
-	permissions, err := r.permissionRepo.GetByIds(ctx, ids)
+	menus, err := r.menuRepo.GetByIds(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	rolePermissions := make([]*v1.RolePermission, 0, len(policies))
-	for _, p := range permissions {
-		rolePermissions = append(rolePermissions, &v1.RolePermission{
+	rolePermissions := make([]*v1.RoleMenu, 0, len(policies))
+	for _, p := range menus {
+		rolePermissions = append(rolePermissions, &v1.RoleMenu{
 			Id:     int(p.Id),
 			Path:   p.Path,
 			Method: p.Method,
-			Name:   p.Name,
 			Title:  p.Title,
 		})
 	}
@@ -164,12 +161,12 @@ func (r *roleService) Get(ctx context.Context, req *v1.RoleGetRequest) (*v1.Role
 		RoleName:    role.Name,
 		Status:      role.Status,
 		Description: role.Description,
-		Permissions: rolePermissions,
+		Menus:       rolePermissions,
 	}, nil
 }
 
 func (r *roleService) List(ctx context.Context, req *v1.RoleListRequest) (*v1.RoleListResponse, error) {
-	roles, total, err := r.roleRepo.Pagination(ctx, req.Page, req.PageSize, nil)
+	roles, total, err := r.roleRepo.Pagination(ctx, req.PageNum, req.PageSize, nil)
 	if err != nil {
 		return nil, err
 	}

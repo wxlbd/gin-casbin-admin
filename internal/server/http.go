@@ -5,6 +5,7 @@ import (
 	"gin-casbin-admin/docs"
 	"gin-casbin-admin/internal/handler"
 	"gin-casbin-admin/internal/middleware"
+	"gin-casbin-admin/internal/repository"
 	"gin-casbin-admin/pkg/jwt"
 	"gin-casbin-admin/pkg/log"
 	"gin-casbin-admin/pkg/server/http"
@@ -21,10 +22,10 @@ func NewHTTPServer(
 	jwt *jwt.JWT,
 	enforcer *casbin.Enforcer,
 	userHandler *handler.AdminUserHandler,
-	permissionHandler *handler.PermissionHandler,
 	roleHandler *handler.RoleHandler,
 	captchaHandler *handler.CaptchaHandler,
 	menuHandler *handler.MenuHandler,
+	menuRepo repository.MenuRepository,
 ) *http.Server {
 	gin.SetMode(gin.DebugMode)
 	s := http.NewServer(
@@ -83,15 +84,7 @@ func NewHTTPServer(
 			menuRouter.GET("/:id", menuHandler.GetMenu)
 		}
 
-		permissionRouter := v1.Group("/permission").Use(middleware.StrictAuth(jwt, logger), middleware.CasbinMiddleware(enforcer, logger))
-		{
-			permissionRouter.POST("", permissionHandler.Add)
-			permissionRouter.GET("", permissionHandler.Tree)
-			permissionRouter.PUT("", permissionHandler.Update)
-			permissionRouter.DELETE("", permissionHandler.Delete)
-		}
-
-		roleRouter := v1.Group("/role").Use(middleware.StrictAuth(jwt, logger), middleware.CasbinMiddleware(enforcer, logger))
+		roleRouter := v1.Group("/role").Use(middleware.StrictAuth(jwt, logger), middleware.CasbinMiddleware(enforcer, menuRepo, logger))
 		{
 			roleRouter.POST("", roleHandler.Add)
 			roleRouter.GET("/:id", roleHandler.Get)

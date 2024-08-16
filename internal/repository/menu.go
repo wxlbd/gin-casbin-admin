@@ -16,10 +16,32 @@ type MenuRepository interface {
 	Get(ctx context.Context, id uint64) (*model.Menu, error)
 	List(ctx context.Context, pageNumber, pageSize int, filters map[string]any) (int64, []*model.Menu, error)
 	GetAll(ctx context.Context) ([]*model.Menu, error)
+	GetByIds(ctx context.Context, ids []string) ([]*model.Menu, error)
+	// GetByPathMethod 通过路径方法类型获取菜单
+	GetByPathMethod(ctx context.Context, path, method string) (*model.Menu, error)
 }
 
 type menuRepository struct {
 	*Repository
+}
+
+func (m *menuRepository) GetByPathMethod(ctx context.Context, path, method string) (*model.Menu, error) {
+	menu := model.Menu{}
+	if err := m.db.WithContext(ctx).Where("path = ? AND method = ?", path, method).First(&menu).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return &menu, nil
+}
+
+func (m *menuRepository) GetByIds(ctx context.Context, ids []string) ([]*model.Menu, error) {
+	var list []*model.Menu
+	if err := m.db.WithContext(ctx).Where("id in ?", ids).Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
 }
 
 func (m *menuRepository) GetAll(ctx context.Context) ([]*model.Menu, error) {
@@ -37,7 +59,7 @@ func (m *menuRepository) Delete(ctx context.Context, ids []uint64) error {
 }
 
 func (m *menuRepository) Update(ctx context.Context, menu *model.Menu) error {
-	return m.db.WithContext(ctx).Model(&model.Menu{}).Where("id = ?", menu.ID).Updates(menu).Error
+	return m.db.WithContext(ctx).Model(&model.Menu{}).Where("id = ?", menu.Id).Updates(menu).Error
 }
 
 func (m *menuRepository) Get(ctx context.Context, id uint64) (*model.Menu, error) {
