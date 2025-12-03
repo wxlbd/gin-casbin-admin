@@ -6,3 +6,10 @@ cmd/server/wire/wire_gen.go
 configs/config.yaml
 .DS_Store
 /.spec-workflow/
+/coverage.out
+/build/gin-casbin-admin
+/build/gin-casbin-admin-darwin-amd64
+/build/gin-casbin-admin-darwin-arm64
+/build/gin-casbin-admin-linux-amd64
+/build/gin-casbin-admin-linux-arm64
+/build/gin-casbin-admin-windows-amd64.exe
