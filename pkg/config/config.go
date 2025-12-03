@@ -104,13 +104,32 @@ type DatabaseConfig struct {
 }
 
 func (c *DatabaseConfig) GetDSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		c.Username,
-		c.Password,
-		c.Host,
-		c.Port,
-		c.Database,
-	)
+	switch c.Driver {
+	case "mysql":
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			c.Username,
+			c.Password,
+			c.Host,
+			c.Port,
+			c.Database,
+		)
+	case "postgres":
+		return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+			c.Host,
+			c.Username,
+			c.Password,
+			c.Database,
+			c.Port,
+		)
+	default:
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			c.Username,
+			c.Password,
+			c.Host,
+			c.Port,
+			c.Database,
+		)
+	}
 }
 
 type LogConfig struct {

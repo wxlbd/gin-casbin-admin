@@ -5,7 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/wxlbd/gin-casbin-admin/internal/handler"
+
+	// "github.com/wxlbd/gin-casbin-admin/internal/handler" // Removing old handler import
+
+	"github.com/wxlbd/gin-casbin-admin/internal/application/user"
+	v1 "github.com/wxlbd/gin-casbin-admin/internal/interfaces/api/v1"
 	"github.com/wxlbd/gin-casbin-admin/internal/middleware"
 	"github.com/wxlbd/gin-casbin-admin/pkg/config"
 	"github.com/wxlbd/gin-casbin-admin/pkg/jwtx"
@@ -16,112 +20,124 @@ func NewServerHTTP(
 	cfg *config.Config,
 	logger *log.Logger,
 	jwt *jwtx.JWT,
-	handler *handler.Handler,
+	// handler *handler.Handler, // Removing old handler
+	userHandler *v1.UserHandler,
+	roleHandler *v1.RoleHandler,
+	menuHandler *v1.MenuHandler,
+	dictHandler *v1.DictHandler,
+	captchaHandler *v1.CaptchaHandler,
 	enforcer *casbin.Enforcer,
-	svc handler.Service,
+	userService user.Service,
 ) *gin.Engine {
 	if cfg.Server.Mode == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	r := gin.Default()
-	r.Use(
-		middleware.CORSMiddleware(),
-		middleware.RequestLogger(logger),
-		middleware.ErrorHandler(),
-	)
-	api := r.Group("api")
+	r := gin.Default() // 注册中间件
+	r.Use(middleware.RequestLogger(logger))
+	// r.Use(middleware.Recovery(logger)) // Check if Recovery exists
+	r.Use(middleware.CORSMiddleware())
+
+	// 注册路由
+	api := r.Group("/api/v1")
 	{
-		auth := api.Group("auth")
-		// 完全公开的接口
-		auth.POST("/login", handler.User().Login)
-		auth.POST("/refresh-token", handler.User().RefreshToken)
-		auth.POST("/logout", handler.User().Logout)
-		auth.GET("/captcha", handler.Captcha().Generate)
-
-		// 需要JWT认证的接口
-		jwtGroup := api.Group("")
-		jwtGroup.Use(middleware.JWTAuth(jwt))
+		// 认证相关接口
+		auth := api.Group("/auth")
 		{
-			profile := jwtGroup.Group("user/profile")
-			{
-				profile.GET("", handler.User().Current)
-				profile.GET("menus", handler.SysMenu().GetUserMenuTree)
-				// profile.GET("/menu/tree", handler.Menu().GetMenuTree)
-				profile.GET("roles", handler.User().GetCurrentUserRoles)
-			}
-			jwtGroup.GET("system/role/all", handler.Role().GetAllRoles)
-		}
+			auth.POST("/login", userHandler.Login)
+			auth.POST("/refresh-token", userHandler.RefreshToken)
+			auth.POST("/logout", userHandler.Logout)
+			auth.GET("/captcha", captchaHandler.Generate)
 
-		// 需要完整权限控制的接口
-		authorized := api.Group("")
-		authorized.Use(
-			middleware.JWTAuth(jwt),
-			middleware.CasbinMiddleware(enforcer, logger, svc),
-		)
-		sys := authorized.Group("system")
-
-		// 权限控制
-		{
-			// 用户管理 system:user:xxx
-			userGroup := sys.Group("user")
+			// 需要JWT认证的接口
+			jwtGroup := api.Group("")
+			jwtGroup.Use(middleware.JWTAuth(jwt))
 			{
-				userGroup.GET("", handler.User().List)                      // system:user:list
-				userGroup.POST("", handler.User().Create)                   // system:user:create
-				userGroup.PUT("/:id", handler.User().Update)                // system:user:update
-				userGroup.DELETE("/:ids", handler.User().Delete)            // system:user:delete
-				userGroup.GET("/:id", handler.User().Detail)                // system:user:detail
-				userGroup.GET("/:id/roles", handler.User().GerUserRoles)    // system:user:get:roles
-				userGroup.PUT(":id/password", handler.User().ResetPassword) // system:user:set:password
-				userGroup.PUT(":id/roles", handler.User().AssignRoles)      // system:user:set:roles
-			}
-
-			// 角色管理 permission:role:xxx
-			roleGroup := sys.Group("role")
-			{
-				roleGroup.GET("", handler.Role().List)                           // system:role:list
-				roleGroup.POST("", handler.Role().Create)                        // system:role:create
-				roleGroup.PUT("/:id", handler.Role().Update)                     // system:role:update
-				roleGroup.DELETE("/:ids", handler.Role().Delete)                 // system:role:delete
-				roleGroup.GET("/:id", handler.Role().Detail)                     // system:role:detail
-				roleGroup.GET("/:id/menus", handler.Role().GetPermittedMenus)    // system:role:get:menus
-				roleGroup.PUT("/:id/menus", handler.Role().AssignRoleMenusByIDs) // system:role:set:menus
-			}
-
-			// 菜单管理 permission:menu:xxx
-			menuGroup := sys.Group("menu")
-			{
-				menuGroup.POST("", handler.SysMenu().Create)                   // system:menu:create
-				menuGroup.PUT("/:id", handler.SysMenu().Update)                // system:menu:update
-				menuGroup.DELETE("/:ids", handler.SysMenu().Delete)            // system:menu:delete
-				menuGroup.GET("", handler.SysMenu().List)                      // system:menu:list
-				menuGroup.GET("/tree", handler.SysMenu().GetMenuTree)          // system:menu:tree
-				menuGroup.GET("/user-tree", handler.SysMenu().GetUserMenuTree) // system:menu:user-tree
-			}
-
-			// 字典管理
-			{
-				// 字典类型管理
-				dictType := sys.Group("dict-type")
+				profile := jwtGroup.Group("user/profile")
 				{
-					dictType.POST("", handler.Dict().CreateDictType)        // system:dict:type:create
-					dictType.PUT("/:id", handler.Dict().UpdateDictType)     // system:dict:type:update
-					dictType.DELETE("/:ids", handler.Dict().DeleteDictType) // system:dict:type:delete
-					dictType.GET("/:id", handler.Dict().GetDictType)        // system:dict:type:detail
-					dictType.GET("", handler.Dict().ListDictType)           // system:dict:type:list
+					profile.GET("", userHandler.Current)
+					profile.GET("menus", menuHandler.GetUserMenuTree)
+					profile.GET("roles", roleHandler.GetPermittedMenus)
 				}
 
-				// 字典数据管理
-				dictData := sys.Group("dict-data")
+				// 需要完整权限控制的接口
+				sys := jwtGroup.Group("/system")
+				sys.Use(middleware.CasbinMiddleware(enforcer, logger, userService))
+
+				jwtGroup.GET("system/role/all", roleHandler.GetAllRoles)
+			}
+
+			// 需要完整权限控制的接口
+			authorized := api.Group("")
+			authorized.Use(
+				middleware.JWTAuth(jwt),
+				middleware.CasbinMiddleware(enforcer, logger, userService),
+			)
+			sys := authorized.Group("system")
+
+			// 权限控制
+			{
+				// 用户管理 system:user:xxx
+				userGroup := sys.Group("user")
 				{
-					dictData.POST("", handler.Dict().CreateDictData)        // system:dict:data:create
-					dictData.PUT("/:id", handler.Dict().UpdateDictData)     // system:dict:data:update
-					dictData.DELETE("/:ids", handler.Dict().DeleteDictData) // system:dict:data:delete
-					dictData.GET("/:id", handler.Dict().GetDictData)        // system:dict:data:detail
-					dictData.GET("", handler.Dict().ListDictData)           // system:dict:data:list
-					//dictData.GET("/type/:type", handler.Dict().GetDictDataByType) // system:dict:data:list:type
+					userGroup.GET("", userHandler.List)           // system:user:list
+					userGroup.POST("", userHandler.Create)        // system:user:create
+					userGroup.PUT("/:id", userHandler.Update)     // system:user:update
+					userGroup.DELETE("/:ids", userHandler.Delete) // system:user:delete
+					userGroup.GET("/:id", userHandler.Detail)     // system:user:detail
+					// userGroup.GET("/:id/roles", handler.User().GerUserRoles)    // system:user:get:roles // TODO: Migrate
+					userGroup.PUT(":id/password", userHandler.ResetPassword) // system:user:set:password
+					// userGroup.PUT(":id/roles", handler.User().AssignRoles)      // system:user:set:roles // TODO: Migrate
+				}
+
+				// 角色管理 permission:role:xxx
+				roleGroup := sys.Group("role")
+				{
+					roleGroup.GET("", roleHandler.List)                            // permission:role:list
+					roleGroup.POST("", roleHandler.Create)                         // permission:role:create
+					roleGroup.PUT("/:id", roleHandler.Update)                      // permission:role:update
+					roleGroup.DELETE("/:ids", roleHandler.Delete)                  // permission:role:delete
+					roleGroup.GET("/:id", roleHandler.Detail)                      // permission:role:detail
+					roleGroup.GET("/:id/menus", roleHandler.GetPermittedMenus)     // permission:role:menu:list
+					roleGroup.POST("/:id/menus", roleHandler.AssignRoleMenusByIDs) // permission:role:menu:assignus
+				}
+
+				// 菜单管理 permission:menu:xxx
+				menuGroup := sys.Group("menu")
+				{
+					menuGroup.GET("", menuHandler.List)                      // system:menu:list
+					menuGroup.POST("", menuHandler.Create)                   // system:menu:create
+					menuGroup.PUT("/:id", menuHandler.Update)                // system:menu:update
+					menuGroup.DELETE("/:ids", menuHandler.Delete)            // system:menu:delete
+					menuGroup.GET("/tree", menuHandler.GetMenuTree)          // system:menu:tree
+					menuGroup.GET("/user-tree", menuHandler.GetUserMenuTree) // system:menu:user-tree
+				}
+
+				// 字典管理
+				{
+					// 字典类型管理
+					dictType := sys.Group("dict-type")
+					{
+						dictType.GET("", dictHandler.ListDictType)           // system:dict:type:list
+						dictType.POST("", dictHandler.CreateDictType)        // system:dict:type:create
+						dictType.PUT("/:id", dictHandler.UpdateDictType)     // system:dict:type:update
+						dictType.DELETE("/:ids", dictHandler.DeleteDictType) // system:dict:type:delete
+						dictType.GET("/:id", dictHandler.GetDictType)        // system:dict:type:detail
+					}
+
+					// 字典数据管理
+					dictData := sys.Group("dict-data")
+					{
+						dictData.GET("", dictHandler.ListDictData)                 // system:dict:data:list
+						dictData.POST("", dictHandler.CreateDictData)              // system:dict:data:create
+						dictData.PUT("/:id", dictHandler.UpdateDictData)           // system:dict:data:update
+						dictData.DELETE("/:ids", dictHandler.DeleteDictData)       // system:dict:data:delete
+						dictData.GET("/:id", dictHandler.GetDictData)              // system:dict:data:detail
+						dictData.GET("/type/:type", dictHandler.GetDictDataByType) // system:dict:data:typelist:type
+					}
 				}
 			}
 		}
+
 	}
 
 	// Swagger 文档
