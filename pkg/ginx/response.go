@@ -53,23 +53,31 @@ func ParamError(c *gin.Context, err error) {
 func Unauthorized(c *gin.Context, err error) {
 	var customErr *cerrors.Error
 	if errors.As(err, &customErr) {
-		Error(c, customErr.Code, customErr.Message)
+		httpCode := 200
+		if customErr.Status != 0 {
+			httpCode = customErr.Status
+		}
+		Error(c, customErr.Code, customErr.Message, httpCode)
 		return
 	}
-	Error(c, 401, "未授权")
+	Error(c, 401, "未授权", 401)
 }
 
 // Forbidden 禁止访问响应
 func Forbidden(c *gin.Context) {
-	Error(c, 403, "禁止访问")
+	Error(c, 403, "禁止访问", 403)
 }
 
 // ServerError 服务器错误响应
 func ServerError(c *gin.Context, err error) {
 	var customErr *cerrors.Error
 	if errors.As(err, &customErr) {
-		Error(c, customErr.Code, customErr.Message)
+		httpCode := 200
+		if customErr.Status != 0 {
+			httpCode = customErr.Status
+		}
+		Error(c, customErr.Code, customErr.Message, httpCode)
 		return
 	}
-	Error(c, 500, err.Error())
+	Error(c, 500, err.Error(), 500)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/wxlbd/gin-casbin-admin/internal/domain/role"
 	"github.com/wxlbd/gin-casbin-admin/internal/infrastructure/persistence/models"
+	"github.com/wxlbd/gin-casbin-admin/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -70,7 +71,7 @@ func (r *roleRepository) FindByID(ctx context.Context, id uint64) (*role.Role, e
 	var m models.Role
 	if err := r.db.WithContext(ctx).First(&m, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (r *roleRepository) FindByCode(ctx context.Context, code string) (*role.Rol
 	var m models.Role
 	if err := r.db.WithContext(ctx).Where("code = ?", code).First(&m).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}

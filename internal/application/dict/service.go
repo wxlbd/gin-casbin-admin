@@ -34,7 +34,10 @@ func NewDictService(repo dict.Repository) Service {
 // --- DictType ---
 
 func (s *dictService) CreateType(ctx context.Context, req *DictTypeRequest) error {
-	exist, _ := s.repo.FindTypeByCode(ctx, req.Code)
+	exist, err := s.repo.FindTypeByCode(ctx, req.Code)
+	if err != nil && err != errors.ErrNotFound {
+		return err
+	}
 	if exist != nil {
 		return errors.WithMsg(errors.AlreadyExists, "字典类型已存在")
 	}
@@ -44,10 +47,10 @@ func (s *dictService) CreateType(ctx context.Context, req *DictTypeRequest) erro
 func (s *dictService) UpdateType(ctx context.Context, req *DictTypeRequest) error {
 	exist, err := s.repo.FindTypeByID(ctx, req.ID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "字典类型不存在")
+		}
 		return err
-	}
-	if exist == nil {
-		return errors.WithMsg(errors.NotFound, "字典类型不存在")
 	}
 	d := req.ToEntity()
 	d.CreatedAt = exist.CreatedAt
@@ -90,10 +93,10 @@ func (s *dictService) CreateData(ctx context.Context, req *DictDataRequest) erro
 func (s *dictService) UpdateData(ctx context.Context, req *DictDataRequest) error {
 	exist, err := s.repo.FindDataByID(ctx, req.ID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "字典数据不存在")
+		}
 		return err
-	}
-	if exist == nil {
-		return errors.WithMsg(errors.NotFound, "字典数据不存在")
 	}
 	d := req.ToEntity()
 	d.CreatedAt = exist.CreatedAt

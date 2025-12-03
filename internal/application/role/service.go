@@ -52,10 +52,10 @@ func (s *roleService) IsCodeExists(ctx context.Context, code string) bool {
 func (s *roleService) Update(ctx context.Context, req *RoleRequest) error {
 	existRole, err := s.repo.FindByID(ctx, req.ID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "角色不存在")
+		}
 		return err
-	}
-	if existRole == nil {
-		return errors.WithMsg(errors.NotFound, "角色不存在")
 	}
 
 	if req.Code != existRole.Code {
@@ -74,10 +74,10 @@ func (s *roleService) Delete(ctx context.Context, ids ...uint64) error {
 	for _, id := range ids {
 		role, err := s.repo.FindByID(ctx, id)
 		if err != nil {
+			if err == errors.ErrNotFound {
+				continue
+			}
 			return err
-		}
-		if role == nil {
-			continue
 		}
 		// Delete permissions
 		_, err = s.enforcer.DeletePermissionsForUser(role.Code)
@@ -142,10 +142,10 @@ func (s *roleService) AssignMenuByIds(ctx context.Context, roleID uint64, menuId
 
 	role, err := s.repo.FindByID(ctx, roleID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "角色不存在")
+		}
 		return err
-	}
-	if role == nil {
-		return errors.WithMsg(errors.NotFound, "角色不存在")
 	}
 
 	// 2. Update Casbin Policies
@@ -183,10 +183,10 @@ func (s *roleService) AssignMenuByIds(ctx context.Context, roleID uint64, menuId
 func (s *roleService) GetPermittedMenus(ctx context.Context, roleID uint64) ([]*menu.Menu, error) {
 	role, err := s.repo.FindByID(ctx, roleID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return nil, errors.WithMsg(errors.NotFound, "角色不存在")
+		}
 		return nil, err
-	}
-	if role == nil {
-		return nil, errors.WithMsg(errors.NotFound, "角色不存在")
 	}
 
 	if role.Code == "SuperAdmin" {

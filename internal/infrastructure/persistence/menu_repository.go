@@ -5,6 +5,7 @@ import (
 
 	"github.com/wxlbd/gin-casbin-admin/internal/domain/menu"
 	"github.com/wxlbd/gin-casbin-admin/internal/infrastructure/persistence/models"
+	"github.com/wxlbd/gin-casbin-admin/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -104,7 +105,7 @@ func (r *menuRepository) FindByID(ctx context.Context, id int64) (*menu.Menu, er
 	var m models.SysMenu
 	if err := r.db.WithContext(ctx).First(&m, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}

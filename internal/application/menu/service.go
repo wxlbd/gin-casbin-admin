@@ -32,10 +32,10 @@ func (s *menuService) Create(ctx context.Context, req *SysMenuRequest) error {
 func (s *menuService) Update(ctx context.Context, req *SysMenuRequest) error {
 	exist, err := s.repo.FindByID(ctx, req.ID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "菜单不存在")
+		}
 		return err
-	}
-	if exist == nil {
-		return errors.WithMsg(errors.NotFound, "菜单不存在")
 	}
 	m := req.ToEntity()
 	m.CreatedAt = exist.CreatedAt

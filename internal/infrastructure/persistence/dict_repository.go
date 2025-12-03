@@ -5,6 +5,7 @@ import (
 
 	"github.com/wxlbd/gin-casbin-admin/internal/domain/dict"
 	"github.com/wxlbd/gin-casbin-admin/internal/infrastructure/persistence/models"
+	"github.com/wxlbd/gin-casbin-admin/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -72,7 +73,7 @@ func (r *dictRepository) FindTypeByID(ctx context.Context, id int64) (*dict.Dict
 	var m models.DictType
 	if err := r.db.WithContext(ctx).First(&m, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (r *dictRepository) FindTypeByCode(ctx context.Context, code string) (*dict
 	var m models.DictType
 	if err := r.db.WithContext(ctx).Where("code = ?", code).First(&m).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -179,7 +180,7 @@ func (r *dictRepository) FindDataByID(ctx context.Context, id int64) (*dict.Dict
 	var m models.DictDatum
 	if err := r.db.WithContext(ctx).First(&m, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}

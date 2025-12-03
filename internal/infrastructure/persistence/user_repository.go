@@ -6,6 +6,7 @@ import (
 	"github.com/wxlbd/gin-casbin-admin/internal/domain/role"
 	"github.com/wxlbd/gin-casbin-admin/internal/domain/user"
 	"github.com/wxlbd/gin-casbin-admin/internal/infrastructure/persistence/models"
+	"github.com/wxlbd/gin-casbin-admin/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -91,7 +92,7 @@ func (r *userRepository) FindByID(ctx context.Context, id uint64) (*user.User, e
 	var m models.User
 	if err := r.db.WithContext(ctx).First(&m, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}
@@ -102,7 +103,7 @@ func (r *userRepository) FindByUsername(ctx context.Context, username string) (*
 	var m models.User
 	if err := r.db.WithContext(ctx).Where("username = ?", username).First(&m).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+			return nil, errors.ErrNotFound
 		}
 		return nil, err
 	}

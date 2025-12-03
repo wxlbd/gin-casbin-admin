@@ -45,7 +45,7 @@ func NewUserService(logger *log.Logger, repo user.Repository, jwt *jwtx.JWT) Ser
 func (s *userService) Create(ctx context.Context, req *CreateUserRequest, createdBy uint64) error {
 	// 检查用户名是否存在
 	existUser, err := s.repo.FindByUsername(ctx, req.Username)
-	if err != nil {
+	if err != nil && err != errors.ErrNotFound {
 		return err
 	}
 	if existUser != nil {
@@ -66,11 +66,11 @@ func (s *userService) Create(ctx context.Context, req *CreateUserRequest, create
 func (s *userService) Update(ctx context.Context, req *UpdateUserRequest) error {
 	existUser, err := s.repo.FindByID(ctx, req.ID)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "用户不存在")
+		}
 		s.logger.Error("查询用户失败", zap.Error(err))
 		return errors.ErrDatabase
-	}
-	if existUser == nil {
-		return errors.WithMsg(errors.NotFound, "用户不存在")
 	}
 
 	// 如果修改了用户名，需要检查新用户名是否已存在
@@ -131,10 +131,10 @@ func (s *userService) List(ctx context.Context, req *UserListRequest) (*UserList
 func (s *userService) UpdatePassword(ctx context.Context, id uint64, oldPassword, newPassword string) error {
 	u, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "用户不存在")
+		}
 		return err
-	}
-	if u == nil {
-		return errors.WithMsg(errors.NotFound, "用户不存在")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(oldPassword)); err != nil {
@@ -153,10 +153,10 @@ func (s *userService) UpdatePassword(ctx context.Context, id uint64, oldPassword
 func (s *userService) ResetPassword(ctx context.Context, id uint64, newPassword string) error {
 	u, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return errors.WithMsg(errors.NotFound, "用户不存在")
+		}
 		return err
-	}
-	if u == nil {
-		return errors.WithMsg(errors.NotFound, "用户不存在")
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -171,11 +171,11 @@ func (s *userService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 
 	u, err := s.repo.FindByUsername(ctx, req.Username)
 	if err != nil {
+		if err == errors.ErrNotFound {
+			return nil, errors.WithMsg(errors.NotFound, "用户不存在")
+		}
 		s.logger.Error("查询用户失败", zap.Error(err))
 		return nil, err
-	}
-	if u == nil {
-		return nil, errors.WithMsg(errors.NotFound, "用户不存在")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password)); err != nil {
