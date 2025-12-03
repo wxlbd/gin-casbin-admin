@@ -1,0 +1,24 @@
+basePath: /api
+host: localhost:8080
+info:
+  contact:
+    email: gopher095@gmail.com
+    name: wxl
+    url: https://github.com/wxlbd
+  description: 基于 Gin + Casbin 的权限管理系统
+  license:
+    name: MIT
+    url: https://github.com/wxlbd/gin-casbin-admin/blob/main/LICENSE
+  termsOfService: http://swagger.io/terms/
+  title: Gin-Casbin-Admin API
+  version: "1.0"
+paths: {}
+schemes:
+- http
+- https
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

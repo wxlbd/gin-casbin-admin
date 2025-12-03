@@ -1,0 +1,32 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "基于 Gin + Casbin 的权限管理系统",
+        "title": "Gin-Casbin-Admin API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "wxl",
+            "url": "https://github.com/wxlbd",
+            "email": "gopher095@gmail.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://github.com/wxlbd/gin-casbin-admin/blob/main/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {},
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -158,7 +158,7 @@ func (j *JWT) getBlacklistKey(tokenStr string) string {
 
 // 生成续期记录的 key
 func (j *JWT) getRenewalKey(userID uint64) string {
-	return "token:renewal:" + string(userID)
+	return "token:renewal:" + fmt.Sprintf("%d", userID)
 }
 
 // AddToBlacklist 将指定的令牌添加到黑名单中。
