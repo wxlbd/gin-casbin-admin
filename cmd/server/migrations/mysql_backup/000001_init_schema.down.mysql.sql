@@ -1,0 +1,15 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `attachment`;
+DROP TABLE IF EXISTS `casbin_rule`;
+DROP TABLE IF EXISTS `dict_data`;
+DROP TABLE IF EXISTS `dict_types`;
+DROP TABLE IF EXISTS `role`;
+DROP TABLE IF EXISTS `role_menus`;
+DROP TABLE IF EXISTS `sys_menus`;
+DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `user_login_log`;
+DROP TABLE IF EXISTS `user_operation_log`;
+DROP TABLE IF EXISTS `user_roles`;
+
+SET FOREIGN_KEY_CHECKS = 1; 
