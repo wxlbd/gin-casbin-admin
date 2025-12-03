@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/wxlbd/gin-casbin-admin/internal/handler"
+	"github.com/wxlbd/gin-casbin-admin/internal/application/user"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func CasbinMiddleware(enforcer *casbin.Enforcer, log *log.Logger, svc handler.Service) gin.HandlerFunc {
+func CasbinMiddleware(enforcer *casbin.Enforcer, log *log.Logger, svc user.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 获取当前登录用户
 		userID := c.GetUint64("user_id")
@@ -25,7 +25,7 @@ func CasbinMiddleware(enforcer *casbin.Enforcer, log *log.Logger, svc handler.Se
 		}
 
 		// 获取用户的角色列表
-		roles, err := svc.User().GetUserRoles(c, userID)
+		roles, err := svc.GetUserRoles(c, userID)
 		if err != nil {
 			log.WithContext(c).Error("获取用户角色失败", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, gin.H{
