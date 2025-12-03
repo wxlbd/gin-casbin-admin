@@ -368,8 +368,6 @@ GET /metrics         # Prometheus 指标（待实现）
 ### Q: 数据库连接失败？
 A: 检查数据库配置是否正确，确保数据库服务已启动
 
-### Q: JWT Token 无效？
-A: 检查 JWT 密钥配置，确保前后端使用的密钥一致
 
 ### Q: 权限验证失败？
 A: 检查 Casbin 规则配置，确保角色权限已正确分配
@@ -408,7 +406,7 @@ A: 检查 Redis 服务状态和连接配置
 
 ## 🙏 致谢
 
-感谢以下开源项目的贡献：
+感谢以下开源项目：
 
 - [Gin](https://github.com/gin-gonic/gin) - HTTP Web 框架
 - [GORM](https://gorm.io/) - ORM 框架
