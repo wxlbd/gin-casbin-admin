@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/urfave/cli/v2"
@@ -162,8 +163,20 @@ func getMigrate() (*migrate.Migrate, error) {
 	}
 
 	// 构建数据库 DSN
-	dsn := fmt.Sprintf("mysql://%s",
-		conf.Database.GetDSN())
+	var dsn string
+	switch conf.Database.Driver {
+	case "mysql":
+		dsn = fmt.Sprintf("mysql://%s", conf.Database.GetDSN())
+	case "postgres":
+		dsn = fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+			conf.Database.Username,
+			conf.Database.Password,
+			conf.Database.Host,
+			conf.Database.Port,
+			conf.Database.Database)
+	default:
+		return nil, fmt.Errorf("unsupported database driver: %s", conf.Database.Driver)
+	}
 
 	// 创建 migrate 实例
 	m, err := migrate.NewWithSourceInstance("iofs", d, dsn)
@@ -175,8 +188,20 @@ func getMigrate() (*migrate.Migrate, error) {
 }
 
 func ensureDBExists() error {
-	// 构建不带数据库名的 DSN
 	dbConfig := conf.Database
+
+	switch dbConfig.Driver {
+	case "mysql":
+		return ensureMySQLDBExists(&dbConfig)
+	case "postgres":
+		return ensurePostgreSQLDBExists(&dbConfig)
+	default:
+		return fmt.Errorf("unsupported database driver: %s", dbConfig.Driver)
+	}
+}
+
+func ensureMySQLDBExists(dbConfig *config.DatabaseConfig) error {
+	// 构建不带数据库名的 DSN
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/",
 		dbConfig.Username,
 		dbConfig.Password,
@@ -197,6 +222,41 @@ func ensureDBExists() error {
 	}
 
 	logger.Info("database created or already exists", zap.String("database", dbConfig.Database))
+	return nil
+}
+
+func ensurePostgreSQLDBExists(dbConfig *config.DatabaseConfig) error {
+	// PostgreSQL 需要先连接到 postgres 数据库或 template1 数据库
+	dsn := fmt.Sprintf("host=%s user=%s password=%s port=%d dbname=postgres sslmode=disable",
+		dbConfig.Host,
+		dbConfig.Username,
+		dbConfig.Password,
+		dbConfig.Port)
+
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("failed to connect to postgres: %w", err)
+	}
+	defer db.Close()
+
+	// 检查数据库是否存在
+	var exists bool
+	checkSQL := "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1)"
+	if err := db.QueryRow(checkSQL, dbConfig.Database).Scan(&exists); err != nil {
+		return fmt.Errorf("failed to check database existence: %w", err)
+	}
+
+	if !exists {
+		// 创建数据库
+		createDBSQL := fmt.Sprintf("CREATE DATABASE \"%s\"", dbConfig.Database)
+		if _, err := db.Exec(createDBSQL); err != nil {
+			return fmt.Errorf("failed to create database: %w", err)
+		}
+		logger.Info("database created", zap.String("database", dbConfig.Database))
+	} else {
+		logger.Info("database already exists", zap.String("database", dbConfig.Database))
+	}
+
 	return nil
 }
 
