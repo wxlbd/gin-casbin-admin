@@ -157,6 +157,58 @@ INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, r
 VALUES (23, 1, 1, '字典数据', 'dictData', '/system/dict/dictData', '', 99, '', '', '', '', '', '', '', '', 1, 0, 0, 0,
         0, 0, 0, '2025-02-08 09:12:52', '2025-02-08 14:33:09');
 
+-- 字典类型按钮
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (24, 22, 4, '字典类型列表', '', '', '', 99, '', '', '', '', '', '', 'system:dict:type:list', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (25, 22, 4, '字典类型添加', '', '', '', 99, '', '', '', '', '', '', 'system:dict:type:create', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (26, 22, 4, '字典类型修改', '', '', '', 99, '', '', '', '', '', '', 'system:dict:type:update', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (27, 22, 4, '字典类型删除', '', '', '', 99, '', '', '', '', '', '', 'system:dict:type:delete', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+
+-- 字典数据按钮
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (28, 23, 4, '字典数据列表', '', '', '', 99, '', '', '', '', '', '', 'system:dict:data:list', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (29, 23, 4, '字典数据添加', '', '', '', 99, '', '', '', '', '', '', 'system:dict:data:create', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (30, 23, 4, '字典数据修改', '', '', '', 99, '', '', '', '', '', '', 'system:dict:data:update', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+INSERT INTO sys_menus (id, parent_id, menu_type, title, name, path, component, rank, redirect,
+                         icon, extra_icon, enter_transition, leave_transition, active_path, auths,
+                         frame_src, frame_loading, keep_alive, hidden_tag, fixed_tag, show_link,
+                         show_parent, status, created_at, updated_at)
+VALUES (31, 23, 4, '字典数据删除', '', '', '', 99, '', '', '', '', '', '', 'system:dict:data:delete', '', 1, 0, 0, 0, 1, 0, 1,
+        '2025-02-08 15:00:00', '2025-02-08 15:00:00');
+
 -- 插入角色菜单关联数据 (SuperAdmin 拥有所有菜单权限)
 INSERT INTO role_menus (role_id, menu_id, created_at, updated_at)
 VALUES 
@@ -182,4 +234,12 @@ VALUES
   (1, 20, '2025-01-15 11:22:58', '2025-01-15 11:22:58'),
   (1, 21, '2025-01-15 11:22:58', '2025-01-15 11:22:58'),
   (1, 22, '2025-01-15 11:22:58', '2025-01-15 11:22:58'),
-  (1, 23, '2025-01-15 11:22:58', '2025-01-15 11:22:58');
+  (1, 23, '2025-01-15 11:22:58', '2025-01-15 11:22:58'),
+  (1, 24, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 25, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 26, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 27, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 28, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 29, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 30, '2025-02-08 15:00:00', '2025-02-08 15:00:00'),
+  (1, 31, '2025-02-08 15:00:00', '2025-02-08 15:00:00');
