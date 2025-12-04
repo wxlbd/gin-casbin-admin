@@ -222,3 +222,26 @@ func (h *UserHandler) Detail(c *gin.Context) {
 	}
 	ginx.Success(c, user)
 }
+
+// AssignRoles 分配角色
+func (h *UserHandler) AssignRoles(c *gin.Context) {
+	var req userApp.UserAssignRolesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginx.ParamError(c, err)
+		return
+	}
+
+	p := c.Param("id")
+	id, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		ginx.ParamError(c, errors.WithMsg(errors.InvalidParam, "无效的用户ID"))
+		return
+	}
+
+	if err := h.svc.AssignRoles(c.Request.Context(), id, req.RoleIds); err != nil {
+		ginx.ServerError(c, err)
+		return
+	}
+
+	ginx.Success(c, nil)
+}

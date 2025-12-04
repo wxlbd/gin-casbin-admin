@@ -173,3 +173,27 @@ func (r *userRepository) GetUserRoles(ctx context.Context, userID uint64) ([]*ro
 	}
 	return roles, nil
 }
+
+func (r *userRepository) AssignRoles(ctx context.Context, userID uint64, roleIDs []uint64) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Delete existing roles
+		if err := tx.Where("user_id = ?", userID).Delete(&models.UserRole{}).Error; err != nil {
+			return err
+		}
+
+		// Insert new roles
+		if len(roleIDs) == 0 {
+			return nil
+		}
+
+		var userRoles []models.UserRole
+		for _, roleID := range roleIDs {
+			userRoles = append(userRoles, models.UserRole{
+				UserID: userID,
+				RoleID: roleID,
+			})
+		}
+
+		return tx.Create(&userRoles).Error
+	})
+}

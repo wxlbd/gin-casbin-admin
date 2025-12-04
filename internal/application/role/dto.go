@@ -12,17 +12,30 @@ type RoleRequest struct {
 	ID     uint64 `json:"id"` // 更新时必填
 	Name   string `json:"name" binding:"required"`
 	Code   string `json:"code" binding:"required"`
-	Status int8   `json:"status"`
+	Status any    `json:"status"`
 	Sort   int16  `json:"sort"`
 	Remark string `json:"remark"`
 }
 
 func (req *RoleRequest) ToEntity() *role.Role {
+	status := int8(1) // Default to 1 (Normal)
+
+	switch v := req.Status.(type) {
+	case string:
+		if v == "0" {
+			status = 0
+		}
+	case float64:
+		status = int8(v)
+	case int:
+		status = int8(v)
+	}
+
 	return &role.Role{
 		ID:     req.ID,
 		Name:   req.Name,
 		Code:   req.Code,
-		Status: req.Status,
+		Status: status,
 		Sort:   req.Sort,
 		Remark: req.Remark,
 	}

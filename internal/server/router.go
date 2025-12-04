@@ -86,7 +86,7 @@ func NewServerHTTP(
 					userGroup.GET("/:id", userHandler.Detail)     // system:user:detail
 					// userGroup.GET("/:id/roles", handler.User().GerUserRoles)    // system:user:get:roles // TODO: Migrate
 					userGroup.PUT(":id/password", userHandler.ResetPassword) // system:user:set:password
-					// userGroup.PUT(":id/roles", handler.User().AssignRoles)      // system:user:set:roles // TODO: Migrate
+					userGroup.PUT(":id/roles", userHandler.AssignRoles)      // system:user:set:roles
 				}
 
 				// 角色管理 permission:role:xxx

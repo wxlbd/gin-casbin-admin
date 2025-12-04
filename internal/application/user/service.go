@@ -26,6 +26,7 @@ type Service interface {
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest) (*LoginResponse, error)
 	Logout(ctx context.Context, token string) error
 	GetUserRoles(ctx context.Context, userID uint64) ([]*role.Role, error)
+	AssignRoles(ctx context.Context, userID uint64, roleIDs []uint64) error
 }
 
 type userService struct {
@@ -222,4 +223,8 @@ func (s *userService) Logout(ctx context.Context, token string) error {
 
 func (s *userService) GetUserRoles(ctx context.Context, userID uint64) ([]*role.Role, error) {
 	return s.repo.GetUserRoles(ctx, userID)
+}
+
+func (s *userService) AssignRoles(ctx context.Context, userID uint64, roleIDs []uint64) error {
+	return s.repo.AssignRoles(ctx, userID, roleIDs)
 }

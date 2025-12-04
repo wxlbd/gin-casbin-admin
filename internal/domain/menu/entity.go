@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+// Menu Types
+const (
+	TypeMenu   = 1 // 菜单
+	TypeIframe = 2 // iframe
+	TypeLink   = 3 // 外链
+	TypeButton = 4 // 按钮
+)
+
 // Menu Domain Entity
 type Menu struct {
 	ID              int64

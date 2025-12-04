@@ -34,6 +34,7 @@ type User struct {
 type Repository interface {
 	Create(ctx context.Context, user *User) error
 	Update(ctx context.Context, user *User) error
+	AssignRoles(ctx context.Context, userID uint64, roleIDs []uint64) error
 	Delete(ctx context.Context, ids ...uint64) error
 	FindByID(ctx context.Context, id uint64) (*User, error)
 	FindByUsername(ctx context.Context, username string) (*User, error)

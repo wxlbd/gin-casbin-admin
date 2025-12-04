@@ -46,7 +46,7 @@ func Error(c *gin.Context, businessCode int, message string, httpCode ...int) {
 
 // ParamError 参数错误响应
 func ParamError(c *gin.Context, err error) {
-	_ = c.Error(err)
+	Error(c, 400, err.Error(), 400)
 }
 
 // Unauthorized 未授权响应

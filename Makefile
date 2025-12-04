@@ -88,7 +88,7 @@ dev:
 		$(AIR); \
 	else \
 		echo "❌ air 未安装，正在安装..."; \
-		go install github.com/cosmtrek/air@latest; \
+		go install github.com/air-verse/air@latest; \
 		$(AIR); \
 	fi
 

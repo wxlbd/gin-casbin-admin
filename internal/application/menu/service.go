@@ -81,10 +81,26 @@ func (s *menuService) GetUserMenuTree(ctx context.Context, userID uint64) ([]*Sy
 func buildMenuTree(menus []*SysMenuResponse) []*SysMenuResponse {
 	var tree []*SysMenuResponse
 	menuMap := make(map[int64]*SysMenuResponse)
+
+	// First pass: map all menus and aggregate button permissions to parents
 	for _, m := range menus {
 		menuMap[m.ID] = m
 	}
+
+	// Second pass: build tree and handle buttons
 	for _, m := range menus {
+		// Skip buttons in the tree structure, but add their auths to parent
+		if m.MenuType == menu.TypeButton {
+			if parent, ok := menuMap[m.ParentID]; ok {
+				if parent.Auths != "" {
+					parent.Auths += "," + m.Auths
+				} else {
+					parent.Auths = m.Auths
+				}
+			}
+			continue
+		}
+
 		if m.ParentID == 0 {
 			tree = append(tree, m)
 		} else {
