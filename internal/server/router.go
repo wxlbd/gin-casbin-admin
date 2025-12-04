@@ -5,9 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
-	// "github.com/wxlbd/gin-casbin-admin/internal/handler" // Removing old handler import
-
 	"github.com/wxlbd/gin-casbin-admin/internal/application/user"
 	v1 "github.com/wxlbd/gin-casbin-admin/internal/interfaces/api/v1"
 	"github.com/wxlbd/gin-casbin-admin/internal/middleware"
@@ -20,7 +17,6 @@ func NewServerHTTP(
 	cfg *config.Config,
 	logger *log.Logger,
 	jwt *jwtx.JWT,
-	// handler *handler.Handler, // Removing old handler
 	userHandler *v1.UserHandler,
 	roleHandler *v1.RoleHandler,
 	menuHandler *v1.MenuHandler,
@@ -34,7 +30,7 @@ func NewServerHTTP(
 	}
 	r := gin.Default() // 注册中间件
 	r.Use(middleware.RequestLogger(logger))
-	// r.Use(middleware.Recovery(logger)) // Check if Recovery exists
+	r.Use(gin.Recovery())
 	r.Use(middleware.CORSMiddleware())
 
 	// 注册路由
@@ -79,14 +75,15 @@ func NewServerHTTP(
 				// 用户管理 system:user:xxx
 				userGroup := sys.Group("user")
 				{
-					userGroup.GET("", userHandler.List)           // system:user:list
-					userGroup.POST("", userHandler.Create)        // system:user:create
-					userGroup.PUT("/:id", userHandler.Update)     // system:user:update
-					userGroup.DELETE("/:ids", userHandler.Delete) // system:user:delete
-					userGroup.GET("/:id", userHandler.Detail)     // system:user:detail
-					// userGroup.GET("/:id/roles", handler.User().GerUserRoles)    // system:user:get:roles // TODO: Migrate
-					userGroup.PUT(":id/password", userHandler.ResetPassword) // system:user:set:password
-					userGroup.PUT(":id/roles", userHandler.AssignRoles)      // system:user:set:roles
+					userGroup.GET("", userHandler.List)                              // system:user:list
+					userGroup.POST("", userHandler.Create)                           // system:user:create
+					userGroup.PUT("/:id", userHandler.Update)                        // system:user:update
+					userGroup.DELETE("/:ids", userHandler.Delete)                    // system:user:delete
+					userGroup.GET("/:id", userHandler.Detail)                        // system:user:detail
+					userGroup.GET("/:id/roles", userHandler.GetUserRoles)            // system:user:get:roles
+					userGroup.PUT("/:id/password", userHandler.ResetPassword)        // system:user:set:password
+					userGroup.PUT("/:id/roles", userHandler.AssignRoles)             // system:user:set:roles
+					userGroup.GET("/current/roles", userHandler.GetCurrentUserRoles) // 获取当前用户角色
 				}
 
 				// 角色管理 permission:role:xxx

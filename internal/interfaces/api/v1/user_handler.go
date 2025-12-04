@@ -245,3 +245,44 @@ func (h *UserHandler) AssignRoles(c *gin.Context) {
 
 	ginx.Success(c, nil)
 }
+
+// GetUserRoles 获取用户角色
+func (h *UserHandler) GetUserRoles(c *gin.Context) {
+	p := c.Param("id")
+	id, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		ginx.ParamError(c, errors.WithMsg(errors.InvalidParam, "无效的用户ID"))
+		return
+	}
+
+	roles, err := h.svc.GetUserRoles(c.Request.Context(), id)
+	if err != nil {
+		ginx.ServerError(c, err)
+		return
+	}
+
+	ginx.Success(c, roles)
+}
+
+// GetCurrentUserRoles 获取当前登录用户的角色
+func (h *UserHandler) GetCurrentUserRoles(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		ginx.Unauthorized(c, errors.WithMsg(errors.Unauthorized, "未登录"))
+		return
+	}
+
+	id, ok := userID.(uint64)
+	if !ok {
+		ginx.ServerError(c, errors.WithMsg(errors.InvalidParam, "无效的用户ID"))
+		return
+	}
+
+	roles, err := h.svc.GetUserRoles(c.Request.Context(), id)
+	if err != nil {
+		ginx.ServerError(c, err)
+		return
+	}
+
+	ginx.Success(c, roles)
+}

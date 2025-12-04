@@ -65,7 +65,7 @@ func (s *roleService) Update(ctx context.Context, req *RoleRequest) error {
 	}
 
 	r := req.ToEntity()
-	// Keep original created_at
+	// 保持原有的创建时间
 	r.CreatedAt = existRole.CreatedAt
 	return s.repo.Update(ctx, r)
 }
@@ -79,7 +79,7 @@ func (s *roleService) Delete(ctx context.Context, ids ...uint64) error {
 			}
 			return err
 		}
-		// Delete permissions
+		// 删除权限
 		_, err = s.enforcer.DeletePermissionsForUser(role.Code)
 		if err != nil {
 			return err
@@ -117,19 +117,7 @@ func (s *roleService) GetAllRoles(ctx context.Context) ([]*RoleResponse, error) 
 }
 
 func (s *roleService) AssignMenuByIds(ctx context.Context, roleID uint64, menuIds []uint64) error {
-	// TODO: This transaction logic is tricky because it involves GORM transaction and Casbin adapter.
-	// In DDD, we should probably move this to a Domain Service or keep it here but abstract the transaction.
-	// For now, I will try to replicate the logic but I might need access to the DB transaction which is in infrastructure.
-	// This is a leak of infrastructure details.
-	// A better way is to have a TransactionManager interface.
-	// But given the constraints, I will assume I can't easily access the DB object here without breaking layers strictly.
-	// However, the original code used `r.repo.Transaction`.
-	// I didn't implement Transaction in the Repository interface.
-	// I should probably add `Transaction(func(txRepo Repository) error) error` to the interface or similar.
-	// Or, I can just implement the logic without transaction for now (risky) or skip the transaction part and just do it sequentially.
-	// Let's try to implement it sequentially first to get it working, acknowledging the lack of atomicity as a tech debt to be fixed.
-
-	// 1. Get Menus (Need to cast uint64 to int64 for menu IDs if they are int64 in menu domain)
+	// 1. 获取菜单列表
 	var menuIdsInt64 []int64
 	for _, id := range menuIds {
 		menuIdsInt64 = append(menuIdsInt64, int64(id))
@@ -148,15 +136,13 @@ func (s *roleService) AssignMenuByIds(ctx context.Context, roleID uint64, menuId
 		return err
 	}
 
-	// 2. Update Casbin Policies
-	// Note: This really should be in a transaction.
-
-	// Delete old permissions
+	// 2. 更新Casbin权限策略
+	// 删除旧权限
 	if _, err := s.enforcer.DeletePermissionsForUser(role.Code); err != nil {
 		return err
 	}
 
-	// Add new permissions
+	// 添加新权限
 	for _, m := range menusList {
 		if types.MenuType(m.MenuType) == types.MenuTypeButton {
 			path, method := convertMenuToAPI(m.Auths)
@@ -169,15 +155,8 @@ func (s *roleService) AssignMenuByIds(ctx context.Context, roleID uint64, menuId
 		}
 	}
 
-	// 3. Update Role-Menu relation in DB
-	// This part is missing in my repository interface. I need `UpdateRoleMenus`.
-	// I will add it to `role.Repository` interface later or assume it exists.
-	// Wait, `RoleMenu` was a separate model. I haven't migrated `RoleMenu` model.
-	// I should probably add `UpdateMenus(ctx, roleID, menuIDs)` to `role.Repository`.
-
-	// For now, I'll comment this out and mark as TODO.
-	// return s.repo.UpdateMenus(ctx, roleID, menuIds)
-	return nil
+	// 3. 更新角色-菜单关联关系
+	return s.repo.UpdateMenus(ctx, roleID, menuIds)
 }
 
 func (s *roleService) GetPermittedMenus(ctx context.Context, roleID uint64) ([]*menu.Menu, error) {
@@ -196,7 +175,7 @@ func (s *roleService) GetPermittedMenus(ctx context.Context, roleID uint64) ([]*
 	return s.menuRepo.FindByRoleID(ctx, roleID)
 }
 
-// convertMenuToAPI (Copied from original service)
+// convertMenuToAPI 将菜单权限标识转换为API路径和方法
 func convertMenuToAPI(menuName string) (path, method string) {
 	const apiPrefix = "/api"
 	parts := strings.Split(menuName, ":")

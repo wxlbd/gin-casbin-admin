@@ -131,3 +131,27 @@ func (r *roleRepository) FindAll(ctx context.Context) ([]*role.Role, error) {
 	}
 	return entities, nil
 }
+
+func (r *roleRepository) UpdateMenus(ctx context.Context, roleID uint64, menuIDs []uint64) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Delete existing role-menu relations
+		if err := tx.Where("role_id = ?", roleID).Delete(&models.RoleMenu{}).Error; err != nil {
+			return err
+		}
+
+		// Insert new role-menu relations
+		if len(menuIDs) == 0 {
+			return nil
+		}
+
+		var roleMenus []models.RoleMenu
+		for _, menuID := range menuIDs {
+			roleMenus = append(roleMenus, models.RoleMenu{
+				RoleID: roleID,
+				MenuID: menuID,
+			})
+		}
+
+		return tx.Create(&roleMenus).Error
+	})
+}

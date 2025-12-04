@@ -28,6 +28,7 @@ type Repository interface {
 	FindByCode(ctx context.Context, code string) (*Role, error)
 	List(ctx context.Context, query *RoleQuery) ([]*Role, int64, error)
 	FindAll(ctx context.Context) ([]*Role, error)
+	UpdateMenus(ctx context.Context, roleID uint64, menuIDs []uint64) error
 }
 
 type RoleQuery struct {
