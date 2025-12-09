@@ -177,20 +177,25 @@ func (s *roleService) GetPermittedMenus(ctx context.Context, roleID uint64) ([]*
 
 // convertMenuToAPI 将菜单权限标识转换为API路径和方法
 func convertMenuToAPI(menuName string) (path, method string) {
-	const apiPrefix = "/api"
+	const apiPrefix = "/api/v1" // 添加 v1 版本前缀
 	parts := strings.Split(menuName, ":")
 	if len(parts) < 3 {
 		return "", ""
 	}
-	module := parts[0]
-	resource := parts[1]
-	var action, subResource string
+
+	module := parts[0]   // system
+	resource := parts[1] // dict 或 user
+	var action string
+	var subResource string
+
+	// 处理四段式权限标识: system:dict:type:list
 	if len(parts) >= 4 {
-		action = parts[2]
-		subResource = parts[3]
+		subResource = parts[2] // type
+		action = parts[3]      // list
 	} else {
-		action = parts[2]
+		action = parts[2] // list
 	}
+
 	actionMap := map[string]struct {
 		method     string
 		pathSuffix string
@@ -219,13 +224,20 @@ func convertMenuToAPI(menuName string) (path, method string) {
 	if !ok {
 		return "", ""
 	}
+
+	// 构建路径
 	if subResource != "" {
-		path = fmt.Sprintf("%s/%s/%s/%s/%s", apiPrefix, module, resource, item.pathSuffix, subResource)
+		// 四段式: /api/v1/system/dict-type
+		path = fmt.Sprintf("%s/%s/%s-%s", apiPrefix, module, resource, subResource)
 	} else {
+		// 三段式: /api/v1/system/user
 		path = fmt.Sprintf("%s/%s/%s", apiPrefix, module, resource)
-		if item.pathSuffix != "" {
-			path = fmt.Sprintf("%s/%s", path, item.pathSuffix)
-		}
 	}
+
+	// 添加路径后缀（如 :id, :ids）
+	if item.pathSuffix != "" {
+		path = fmt.Sprintf("%s/%s", path, item.pathSuffix)
+	}
+
 	return path, item.method
 }

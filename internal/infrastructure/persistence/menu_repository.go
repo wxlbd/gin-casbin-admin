@@ -180,6 +180,41 @@ func (r *menuRepository) FindByUserID(ctx context.Context, userID uint64) ([]*me
 		return nil, err
 	}
 
+	// 补充父菜单：构建已有菜单 ID 集合
+	menuIDSet := make(map[int64]bool)
+	for _, m := range modelsList {
+		menuIDSet[m.ID] = true
+	}
+
+	// 收集需要补充的父菜单 ID
+	var parentIDs []int64
+	for _, m := range modelsList {
+		if m.ParentID != 0 && !menuIDSet[m.ParentID] {
+			parentIDs = append(parentIDs, m.ParentID)
+			menuIDSet[m.ParentID] = true
+		}
+	}
+
+	var addedParentIDs []int64
+	// 递归获取所有缺失的父菜单
+	for len(parentIDs) > 0 {
+		var parents []*models.SysMenu
+		if err := r.db.WithContext(ctx).Find(&parents, parentIDs).Error; err != nil {
+			return nil, err
+		}
+		modelsList = append(modelsList, parents...)
+		addedParentIDs = append(addedParentIDs, parentIDs...)
+
+		// 检查新获取的父菜单是否还有更上层的父菜单需要补充
+		parentIDs = nil
+		for _, p := range parents {
+			if p.ParentID != 0 && !menuIDSet[p.ParentID] {
+				parentIDs = append(parentIDs, p.ParentID)
+				menuIDSet[p.ParentID] = true
+			}
+		}
+	}
+
 	var entities []*menu.Menu
 	for _, m := range modelsList {
 		entities = append(entities, r.toEntity(m))
