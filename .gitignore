@@ -14,3 +14,4 @@ configs/config.yaml
 /build/gin-casbin-admin-linux-arm64
 /build/gin-casbin-admin-windows-amd64.exe
 tmp/main
+.history
