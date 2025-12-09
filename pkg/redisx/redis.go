@@ -23,7 +23,7 @@ func New(cfg *config.Config) (*redis.Client, error) {
 	})
 
 	// 测试连接
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
