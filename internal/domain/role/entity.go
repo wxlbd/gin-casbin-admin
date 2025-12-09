@@ -9,14 +9,14 @@ import (
 
 // Role Domain Entity
 type Role struct {
-	ID        uint64
-	Name      string
-	Code      string
-	Status    int8
-	Sort      int16
-	Remark    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uint64    `json:"id"`
+	Name      string    `json:"name"`
+	Code      string    `json:"code"`
+	Status    int8      `json:"status"`
+	Sort      int16     `json:"sort"`
+	Remark    string    `json:"remark"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // Repository Interface
